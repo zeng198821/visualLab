@@ -1,6 +1,6 @@
 package com.yunjuanyunshu.annotation;
 
-import com.yunjuanyunshu.yunfd.aop.annotation.check.CheckEnum;
+import com.yunjuanyunshu.annotation.check.CheckEnum;
 
 import java.lang.annotation.*;
 

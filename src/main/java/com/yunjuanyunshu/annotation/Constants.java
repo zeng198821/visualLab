@@ -14,6 +14,6 @@ public class Constants {
      * 服务名默认标识
      */
     public static final String EXT_VALIDATOR_MEDTHOD_NAME = "medthodName";
-    public static final Class VALIDATOR_CLASS = com.yunjuanyunshu.yunfd.aop.annotation.ClassAnnot.class;
+    public static final Class VALIDATOR_CLASS = com.yunjuanyunshu.annotation.ClassAnnot.class;
     
 }

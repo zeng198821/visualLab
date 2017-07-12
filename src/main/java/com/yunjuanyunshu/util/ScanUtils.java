@@ -7,11 +7,12 @@
 
 package com.yunjuanyunshu.util;
 
+import com.yunjuanyunshu.Ao;
 import com.yunjuanyunshu.annotation.*;
-import javassist.*;
-import javassist.bytecode.CodeAttribute;
-import javassist.bytecode.LocalVariableAttribute;
-import javassist.bytecode.MethodInfo;
+//import javassist.*;
+//import javassist.bytecode.CodeAttribute;
+//import javassist.bytecode.LocalVariableAttribute;
+//import javassist.bytecode.MethodInfo;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -60,7 +61,7 @@ public class ScanUtils {
             for (Method method : tmpMethods) {
                 if (isClassValidator || method.isAnnotationPresent(methodAnnoClass)) {
                     try {
-                        String methodAnnoStr = methodValidator(method,methodAnnoClass);
+                        String methodAnnoStr = "";//methodValidator(method,methodAnnoClass);
                         if (methodAnnoStr != null && Modifier.isStatic(method.getModifiers())) { //静态函数，并且打上注解
                             ParameterInfo[] tmpParameterInfo = getParamaters(class_para.getName(), method.getName());
                             String tmpServerName = methodAnnoStr.equals(Constants.EXT_VALIDATOR_MEDTHOD_NAME)
@@ -150,11 +151,12 @@ public class ScanUtils {
         Method[] tmpMethods = null;
         boolean isClassValidator = classValidator(class_para,classAnnoClass);
         try {
+
             tmpMethods = Constants.VALIDATOR_CLASS.getClassLoader().loadClass(class_para.getName()).getMethods();
             for (Method method : tmpMethods) {
                 if (isClassValidator || method.isAnnotationPresent(methodAnnoClass)) {
                     try {
-                        String methodAnnoStr = methodValidator(method,methodAnnoClass);
+                        String methodAnnoStr ="";// methodValidator(method,methodAnnoClass);
                         if (methodAnnoStr != null && Modifier.isStatic(method.getModifiers())) { //静态函数，并且打上注解
                             //tmpParameterList = getParamatersMap(class_para.getName(), method.getName());
                             String tmpServerName = methodAnnoStr.equals(Constants.EXT_VALIDATOR_MEDTHOD_NAME)
@@ -387,41 +389,41 @@ public class ScanUtils {
             return tmprtn;
         }
         tmprtn = new ParameterInfo[ParameterList.length];
-        try {
-            ClassPool pool = ClassPool.getDefault();
-            CtClass cc = pool.getOrNull(clazz.getName());
-            if (cc == null) {
-                pool.insertClassPath(new ClassClassPath(clazz));
-                cc = pool.get(clazz.getName());
-            }
-            CtMethod cm = cc.getDeclaredMethod(methondName_para);
-            // 使用javaassist的反射方法获取方法的参数名
-            MethodInfo methodInfo = cm.getMethodInfo();
-            CodeAttribute codeAttribute = methodInfo.getCodeAttribute();
-            LocalVariableAttribute attr = (LocalVariableAttribute) codeAttribute.getAttribute(LocalVariableAttribute.tag);
-            if (attr == null) {
-                return tmprtn;
-            }
-            tmpParameterListLength = cm.getParameterTypes().length;
-
-            int pos = Modifier.isStatic(cm.getModifiers()) ? 0 : 1;
-            for (int i = 0; i < tmpParameterListLength; i++) {
-                ParameterInfo tmpinfo = new ParameterInfo();
-                tmpinfo.setIndex(i);
-                if(an != null && an.length > 0 && an[i] != null && an[i].length > 0 && an[i][0] != null){
-                    RequestParameterCanNullAnnot tmpParaCanNull = (RequestParameterCanNullAnnot)an[i][0];
-                    tmpinfo.setCanNull(tmpParaCanNull.value());
-                }else {
-                    tmpinfo.setCanNull(true);
-                }
-
-                tmpinfo.setParamaterName(attr.variableName(i + pos));
-                tmpinfo.setParameterClass(ParameterList[i]);
-                tmprtn[i] = tmpinfo;
-            }
-        } catch (NotFoundException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            ClassPool pool = ClassPool.getDefault();
+//            CtClass cc = pool.getOrNull(clazz.getName());
+//            if (cc == null) {
+//                pool.insertClassPath(new ClassClassPath(clazz));
+//                cc = pool.get(clazz.getName());
+//            }
+//            CtMethod cm = cc.getDeclaredMethod(methondName_para);
+//            // 使用javaassist的反射方法获取方法的参数名
+//            MethodInfo methodInfo = cm.getMethodInfo();
+//            CodeAttribute codeAttribute = methodInfo.getCodeAttribute();
+//            LocalVariableAttribute attr = (LocalVariableAttribute) codeAttribute.getAttribute(LocalVariableAttribute.tag);
+//            if (attr == null) {
+//                return tmprtn;
+//            }
+//            tmpParameterListLength = cm.getParameterTypes().length;
+//
+//            int pos = Modifier.isStatic(cm.getModifiers()) ? 0 : 1;
+//            for (int i = 0; i < tmpParameterListLength; i++) {
+//                ParameterInfo tmpinfo = new ParameterInfo();
+//                tmpinfo.setIndex(i);
+//                if(an != null && an.length > 0 && an[i] != null && an[i].length > 0 && an[i][0] != null){
+//                    RequestParameterCanNullAnnot tmpParaCanNull = (RequestParameterCanNullAnnot)an[i][0];
+//                    tmpinfo.setCanNull(tmpParaCanNull.value());
+//                }else {
+//                    tmpinfo.setCanNull(true);
+//                }
+//
+//                tmpinfo.setParamaterName(attr.variableName(i + pos));
+//                tmpinfo.setParameterClass(ParameterList[i]);
+//                tmprtn[i] = tmpinfo;
+//            }
+//        } catch (NotFoundException e) {
+//            e.printStackTrace();
+//        }
         return tmprtn;
     }
 
@@ -460,41 +462,41 @@ public class ScanUtils {
             return tmprtn;
         }
         tmprtn = new HashMap<String,ParameterInfo>();
-        try {
-            ClassPool pool = ClassPool.getDefault();
-            CtClass cc = pool.getOrNull(clazz.getName());
-            if (cc == null) {
-                pool.insertClassPath(new ClassClassPath(clazz));
-                cc = pool.get(clazz.getName());
-            }
-            CtMethod cm = cc.getDeclaredMethod(methondName_para);
-            // 使用javaassist的反射方法获取方法的参数名
-            MethodInfo methodInfo = cm.getMethodInfo();
-            CodeAttribute codeAttribute = methodInfo.getCodeAttribute();
-            LocalVariableAttribute attr = (LocalVariableAttribute) codeAttribute.getAttribute(LocalVariableAttribute.tag);
-            if (attr == null) {
-                return tmprtn;
-            }
-            tmpParameterListLength = cm.getParameterTypes().length;
-
-            int pos = Modifier.isStatic(cm.getModifiers()) ? 0 : 1;
-            for (int i = 0; i < tmpParameterListLength; i++) {
-                ParameterInfo tmpinfo = new ParameterInfo();
-                tmpinfo.setIndex(i);
-                if(an != null && an.length > 0 && an[i] != null && an[i].length > 0 && an[i][0] != null){
-                    RequestParameterCanNullAnnot tmpParaCanNull = (RequestParameterCanNullAnnot)an[i][0];
-                    tmpinfo.setCanNull(tmpParaCanNull.value());
-                }else {
-                    tmpinfo.setCanNull(true);
-                }
-
-                tmpinfo.setParamaterName(attr.variableName(i + pos));
-                tmpinfo.setParameterClass(ParameterList[i]);
-                tmprtn.put(tmpinfo.getParamaterName(),tmpinfo);
-            }
-        } catch (NotFoundException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            ClassPool pool = ClassPool.getDefault();
+//            CtClass cc = pool.getOrNull(clazz.getName());
+//            if (cc == null) {
+//                pool.insertClassPath(new ClassClassPath(clazz));
+//                cc = pool.get(clazz.getName());
+//            }
+//            CtMethod cm = cc.getDeclaredMethod(methondName_para);
+//            // 使用javaassist的反射方法获取方法的参数名
+//            MethodInfo methodInfo = cm.getMethodInfo();
+//            CodeAttribute codeAttribute = methodInfo.getCodeAttribute();
+//            LocalVariableAttribute attr = (LocalVariableAttribute) codeAttribute.getAttribute(LocalVariableAttribute.tag);
+//            if (attr == null) {
+//                return tmprtn;
+//            }
+//            tmpParameterListLength = cm.getParameterTypes().length;
+//
+//            int pos = Modifier.isStatic(cm.getModifiers()) ? 0 : 1;
+//            for (int i = 0; i < tmpParameterListLength; i++) {
+//                ParameterInfo tmpinfo = new ParameterInfo();
+//                tmpinfo.setIndex(i);
+//                if(an != null && an.length > 0 && an[i] != null && an[i].length > 0 && an[i][0] != null){
+//                    RequestParameterCanNullAnnot tmpParaCanNull = (RequestParameterCanNullAnnot)an[i][0];
+//                    tmpinfo.setCanNull(tmpParaCanNull.value());
+//                }else {
+//                    tmpinfo.setCanNull(true);
+//                }
+//
+//                tmpinfo.setParamaterName(attr.variableName(i + pos));
+//                tmpinfo.setParameterClass(ParameterList[i]);
+//                tmprtn.put(tmpinfo.getParamaterName(),tmpinfo);
+//            }
+//        } catch (NotFoundException e) {
+//            e.printStackTrace();
+//        }
         return tmprtn;
     }
 
@@ -508,19 +510,7 @@ public class ScanUtils {
         return class_para.isAnnotationPresent(annoClass);
     }
 
-    /**
-     * 返回函数标识中的值
-     * @param method_para 函数
-     * @param annoClass 注解类
-     * @return 标识中的值
-     */
-    private static String methodValidator(Method method_para,Class<? extends Annotation> annoClass) {
-        Annotation methodAnno = method_para.getAnnotation(annoClass);
-        if (methodAnno == null) {
-            return classValidator(method_para.getDeclaringClass(),annoClass) ? Constants.EXT_VALIDATOR_MEDTHOD_NAME : null;
-        }
-        return (String) ReflectUtil.InvokeMethod(methodAnno,valueMethodName,null);
-    }
+
 
     /**
      * 从包package中获取所有的Class
@@ -662,7 +652,8 @@ public class ScanUtils {
      * @return 注解值
      */
     private static String getAnnoFieldValue(Annotation anno,String fieldName){
-        return (anno == null || StringUtils.isEmpty(fieldName)) ? null : (String) ReflectUtil.InvokeMethod(anno,fieldName,null);
+        return "";
+//        return (anno == null || StringUtils.isEmpty(fieldName)) ? null : (String) ReflectUtil.InvokeMethod(anno,fieldName,null);
     }
 
     /**
@@ -677,7 +668,7 @@ public class ScanUtils {
         ColumnInfo columnInfo = new ColumnInfo();
         String[] colFields = {"columnName","columnDesc","columnBytes","columnRangeMax","columnRangeMin","canNull"};
         for (String tmpColField: colFields) {
-            ReflectUtil.InvokeMethod(columnInfo,genSetMethodName(tmpColField),ReflectUtil.InvokeMethod(anno,tmpColField,null));
+//            ReflectUtil.InvokeMethod(columnInfo,genSetMethodName(tmpColField),ReflectUtil.InvokeMethod(anno,tmpColField,null));
         }
         return  columnInfo;
     }
@@ -694,7 +685,7 @@ public class ScanUtils {
         EntityInfo entityInfo = new EntityInfo();
         String[] colFields = {"tableName","tableDesc"};
         for (String tmpColField: colFields) {
-            ReflectUtil.InvokeMethod(entityInfo,genSetMethodName(tmpColField),ReflectUtil.InvokeMethod(anno,tmpColField,null));
+//            ReflectUtil.InvokeMethod(entityInfo,genSetMethodName(tmpColField),ReflectUtil.InvokeMethod(anno,tmpColField,null));
         }
         return  entityInfo;
     }
@@ -724,6 +715,19 @@ public class ScanUtils {
         String getMethodName = "set";
         return getMethodName + fieldName.substring(0,1).toUpperCase() + fieldName.substring(1);
     }
+
+
+
+
+    public static void getPrivateFields(Class<?> class_para){
+        Field[] fields = class_para.getDeclaredFields();
+        for (Field tmp:fields) {
+            TcpPkgAnno tcp = tmp.getDeclaredAnnotation(TcpPkgAnno.class);
+            System.out.println(tmp.getName()+":pkgIdx="+tcp.pkgIdx()+",pkgName=" + tcp.pkgName());
+        }
+
+    }
+
 
 
 }
