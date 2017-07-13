@@ -6,9 +6,6 @@
 package com.yunjuanyunshu.util;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -21,71 +18,7 @@ public class ReflectUtil {
     }
     
     
-    /**
-     * 获取参数列表
-     * @param className_para 类名
-     * @param methondName_para 函数名
-     * @return  函数的参数列表
-     */
-    public static ParameterInfo[] getParamaters(String className_para, String methondName_para) {
-        ParameterInfo[] tmprtn = null;
-        
-        Class<?> clazz = null;
-        int tmpParameterListLength=0;
-        try {
-            clazz = Class.forName(className_para);  
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(ReflectUtil.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        if(clazz == null){            
-            return tmprtn;
-        }
-        Method[] methods = clazz.getMethods();
-        Method m =null;
-        for (Method method : methods) {
-            if(methondName_para.equals(method.getName())){
-                m = method;
-                break;
-            }
-        }
-        if(m==null){
-            return tmprtn;
-        }
-        Class[] ParameterList =  m.getParameterTypes();
-        
-        if(ParameterList == null ||  ParameterList.length == 0){
-            return tmprtn;            
-        }
-        tmprtn = new  ParameterInfo[ParameterList.length];
-//        try {
-//            ClassPool pool = ClassPool.getDefault();
-//            CtClass cc = pool.getOrNull(clazz.getName());
-//            if(cc == null){
-//                pool.insertClassPath(new ClassClassPath(clazz));
-//                cc = pool.get(clazz.getName());
-//            }
-//            CtMethod cm = cc.getDeclaredMethod(methondName_para);
-//            // 使用javaassist的反射方法获取方法的参数名
-//            MethodInfo methodInfo = cm.getMethodInfo();
-//            CodeAttribute codeAttribute = methodInfo.getCodeAttribute();
-//            LocalVariableAttribute attr = (LocalVariableAttribute) codeAttribute.getAttribute(LocalVariableAttribute.tag);
-//            if (attr == null) {
-//                return tmprtn;
-//            }
-//            tmpParameterListLength = cm.getParameterTypes().length;
-//            int pos = Modifier.isStatic(cm.getModifiers()) ? 0 : 1;
-//            for (int i = 0; i < tmpParameterListLength; i++) {
-//                ParameterInfo tmpinfo = new ParameterInfo();
-//                tmpinfo.setIndex(i);
-//                tmpinfo.setParamaterName(attr.variableName(i + pos));
-//                tmpinfo.setParameterClass(ParameterList[i]);
-//                tmprtn[i] =  tmpinfo;
-//            }
-//        } catch (NotFoundException e) {
-//            e.printStackTrace();
-//        }
-        return  tmprtn;
-    }
+
     
 
 

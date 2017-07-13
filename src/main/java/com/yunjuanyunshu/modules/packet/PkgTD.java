@@ -26,7 +26,8 @@ public class PkgTD extends PkgInfoBase {
 
     @TcpPkgAnno(pkgIdx=5,pkgName = "信号点状态",pkgType = "int",pkgLength = 4)
     private PkgType nodeState;
-
+    @TcpPkgAnno(pkgIdx=6,pkgName = "信号点状态",pkgType = "int",pkgLength = -1)
+    private PkgTime test;
 
 
 
@@ -75,5 +76,13 @@ public class PkgTD extends PkgInfoBase {
 
     public void setNodeState(PkgType nodeState) {
         this.nodeState = nodeState;
+    }
+
+    public PkgTime getTest() {
+        return test;
+    }
+
+    public void setTest(PkgTime test) {
+        this.test = test;
     }
 }
