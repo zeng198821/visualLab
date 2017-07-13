@@ -5,8 +5,6 @@
  */
 package com.yunjuanyunshu.util;
 
-import com.yunjuanyunshu.annotation.ParameterInfo;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.logging.Level;

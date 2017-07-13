@@ -41,6 +41,12 @@ public @interface TcpPkgAnno {
      */
     String pkgType() default "";
 
+    /**
+     * 包体字段类型
+     * @return 包体字段类型
+     */
+    int pkgLength() default 0;
+
 
 
 
