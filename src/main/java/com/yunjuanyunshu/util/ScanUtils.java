@@ -68,14 +68,18 @@ public class ScanUtils {
      * @param fieldName 字段名称
      * @return 字段的Get函数名称
      */
-    private static Method getSetMethod(Class<?> class_param,String fieldName){
-        Method method = null;
+    private static Method getSetMethod(Class<?> class_param,String fieldName,Object val){
         try {
-            method = class_param.getMethod(getSetMethodName(fieldName),class_param);
-        } catch (NoSuchMethodException e) {
+            Method[] tmplist = class_param.getMethods();
+            for (Method tmp : tmplist){
+                if(tmp.getName().equals(getSetMethodName(fieldName))){
+                    return tmp;
+                }
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        return  method;
+        return  null;
     }
 
     /**
@@ -83,7 +87,7 @@ public class ScanUtils {
      * @param fieldName 字段名称
      * @return 字段的Get函数名称
      */
-    private static Object getFieldValue(Object object,String fieldName) throws InvocationTargetException, IllegalAccessException {
+    public static Object getFieldValue(Object object,String fieldName) throws InvocationTargetException, IllegalAccessException {
         Method method = getGetMethod(object.getClass(),fieldName);
         return method.invoke(object);
     }
@@ -93,9 +97,9 @@ public class ScanUtils {
      * @param fieldName 字段名称
      * @return 字段的Get函数名称
      */
-    private static void setFieldValue(Object object,String fieldName,Object val) throws InvocationTargetException, IllegalAccessException {
-        Method method = getSetMethod(object.getClass(),fieldName);
-        method.invoke(object,val);
+    public static void setFieldValue(Object object,String fieldName,Object val) throws InvocationTargetException, IllegalAccessException {
+        Method method = getSetMethod(object.getClass(),fieldName,val);
+        method.invoke(object,new Object[]{val});
     }
 
 
@@ -129,6 +133,16 @@ public class ScanUtils {
             tmpCountSize = tmpCountSize + tmpsize;
         }
         return tmpCountSize;
+    }
+
+
+    public static Object makeFieldInst(Class<?> class_para) throws IllegalAccessException, InstantiationException, InvocationTargetException {
+        Object o = class_para.newInstance();
+        Field[] fields = class_para.getDeclaredFields();
+        for (int i =0;i<fields.length;i++){
+            setFieldValue(o,fields[i].getName(),(byte)i);
+        }
+        return o;
     }
 
 }

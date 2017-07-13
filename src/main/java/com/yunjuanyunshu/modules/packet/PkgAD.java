@@ -72,4 +72,5 @@ public class PkgAD {
     public void setNodeState(PkgType nodeState) {
         this.nodeState = nodeState;
     }
+
 }

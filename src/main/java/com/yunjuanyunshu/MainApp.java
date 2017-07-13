@@ -16,7 +16,9 @@ public class MainApp {
     public static void main(String... args) throws Exception {
         //ScanUtils.getPrivateFields(PkgMain.class);
         PkgMain pkgMain = new PkgMain();
-        PkgTime pkgTime = new PkgTime();
+
+        ScanUtils.setFieldValue(pkgMain,"header",0x6c7d8e9f);
+        PkgTime pkgTime = (PkgTime)ScanUtils.makeFieldInst(PkgTime.class);
         PkgTD pkgTD =new PkgTD();
         //pkgTD.setTest(pkgTime);
         pkgMain.setInfo(pkgTD);
