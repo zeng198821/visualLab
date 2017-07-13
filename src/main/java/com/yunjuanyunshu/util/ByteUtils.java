@@ -7,9 +7,29 @@
 
 package com.yunjuanyunshu.util;
 
+import java.nio.*;
 import java.nio.charset.Charset;
 
 public class ByteUtils {
+
+    /**
+     * 读取Byte数组转换成Int
+     * @param buffer
+     * @param offset 偏移位置
+     * @param isBigEndian 是否按大端法进行解析 true：按大端法解析 | false或者为空：按小端法进行解析
+     * @return
+     */
+    public static short readShort(byte[] buffer,int offset,boolean...isBigEndian){
+        short tmp=0;
+        if(buffer != null  && buffer.length >= (offset + 2)){
+            byte[] tmpbuffer = new byte[2];
+            for(int i =0;i<2;i++){
+                tmpbuffer[i] = buffer[offset+i];
+            }
+            tmp = byteArrayToShort(tmpbuffer,isBigEndian);
+        }
+        return tmp;
+    }
 
     /**
      * 读取Byte数组转换成Int
@@ -27,7 +47,6 @@ public class ByteUtils {
             }
             tmp = byteArrayToInt(tmpbuffer,isBigEndian);
         }
-
         return tmp;
     }
 
@@ -49,6 +68,47 @@ public class ByteUtils {
         }
         return tmp;
     }
+    /**
+     * 读取Byte数组转换成Int
+     * @param buffer
+     * @param offset 偏移位置
+     * @param isBigEndian 是否按大端法进行解析 true：按大端法解析 | false或者为空：按小端法进行解析
+     * @return
+     */
+    public static float readFloat(byte[] buffer,int offset,boolean...isBigEndian){
+        float tmp=0;
+        if(buffer != null  && buffer.length >= (offset + 4)){
+            ByteBuffer byteBuffer = ByteBuffer.wrap(buffer,offset,4);
+            if(isBigEndian==null || !isBigEndian[0]){
+                byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+            }
+            tmp = byteBuffer.getFloat();
+        }
+        return tmp;
+    }
+
+    /**
+     * 读取Byte数组转换成Int
+     * @param buffer
+     * @param offset 偏移位置
+     * @param isBigEndian 是否按大端法进行解析 true：按大端法解析 | false或者为空：按小端法进行解析
+     * @return
+     */
+    public static double readDouble(byte[] buffer, int offset, boolean...isBigEndian){
+        double tmp=0;
+        if(buffer != null  && buffer.length >= (offset + 8)){
+            if(buffer != null  && buffer.length >= (offset + 8)){
+                ByteBuffer byteBuffer = ByteBuffer.wrap(buffer,offset,8);
+                if(isBigEndian==null || !isBigEndian[0]){
+                    byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+                }
+                tmp = byteBuffer.getDouble();
+            }
+        }
+        return tmp;
+    }
+
+
 
     /**
      * Int 转换成 byte
@@ -173,6 +233,38 @@ public class ByteUtils {
                 };
     }
 
+
+
+    /**
+     * byte数组转换成int
+     * @param b
+     * @param isBigEndian 是否按大端法进行解析 true：按大端法解析 | false或者为空：按小端法进行解析
+     * @return
+     */
+    public static short byteArrayToShort(byte[] b,boolean...isBigEndian ) {
+        return (isBigEndian==null || !isBigEndian[0]) ?
+                (short)(b[1] & 0xFF | (b[0] & 0xFF) << 8 ):(short)( b[0] & 0xFF | (b[1] & 0xFF) << 8);
+    }
+
+    /**
+     * int转换成byte数组
+     * @param a
+     * @param isBigEndian
+     * @return
+     */
+    public static byte[] shortToByteArray(short a ,boolean...isBigEndian ) {
+        return (isBigEndian==null || !isBigEndian[0])
+                ?
+                new byte[] {
+                        (byte) (a & 0xFF),
+                        (byte) ((a >> 8) & 0xFF)
+                }
+                :
+                new byte[] {
+                        (byte) ((a >> 8) & 0xFF),
+                        (byte) (a & 0xFF)
+                };
+    }
 
 
     public static byte[] getBytes(short data)

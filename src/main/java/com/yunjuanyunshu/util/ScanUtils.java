@@ -12,6 +12,7 @@ import com.yunjuanyunshu.annotation.TcpPkgAnno;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 
 //import javassist.*;
 //import javassist.bytecode.CodeAttribute;
@@ -68,7 +69,7 @@ public class ScanUtils {
      * @param fieldName 字段名称
      * @return 字段的Get函数名称
      */
-    private static Method getSetMethod(Class<?> class_param,String fieldName,Object val){
+    private static Method getSetMethod(Class<?> class_param,String fieldName){
         try {
             Method[] tmplist = class_param.getMethods();
             for (Method tmp : tmplist){
@@ -97,20 +98,51 @@ public class ScanUtils {
      * @param fieldName 字段名称
      * @return 字段的Get函数名称
      */
-    public static void setFieldValue(Object object,String fieldName,Object val) throws InvocationTargetException, IllegalAccessException {
-        Method method = getSetMethod(object.getClass(),fieldName,val);
-        method.invoke(object,new Object[]{val});
+    public static void setFieldValue(Object object,String fieldName,Object val) throws InvocationTargetException, IllegalAccessException, NoSuchFieldException {
+        String tmpFieldType = object.getClass().getDeclaredField(fieldName).getType().getTypeName();
+        Method method = getSetMethod(object.getClass(),fieldName);
+        if(tmpFieldType.equals("java.lang.String")) {
+            method.invoke(object, new Object[]{(String) val});
+        }
+        if(tmpFieldType.equals("java.lang.Integer")) {
+            method.invoke(object, new Object[]{(int) val});
+        }
+        if(tmpFieldType.equals("java.lang.Byte")) {
+            method.invoke(object, new Object[]{(byte) val});
+        }
+        if(tmpFieldType.equals("java.lang.Short")) {
+            method.invoke(object, new Object[]{(short) val});
+        }
+        if(tmpFieldType.equals("java.lang.Float")) {
+            method.invoke(object, new Object[]{(float) val});
+        }
+        if(tmpFieldType.equals("java.lang.Double")) {
+            method.invoke(object, new Object[]{(double) val});
+        }
     }
 
 
 
 
-    public static void getPrivateFields(Class<?> class_para){
+    public static Field[] getPrivateFields(Class<?> class_para){
         Field[] fields = class_para.getDeclaredFields();
+        HashMap<Integer,Field> tmpMap = new HashMap<Integer,Field>();
+        int tmpCount=0;
         for (Field tmp : fields) {
             TcpPkgAnno tcp = tmp.getDeclaredAnnotation(TcpPkgAnno.class);
-            System.out.println(tmp.getName()+":pkgIdx="+tcp.pkgIdx()+",pkgName=" + tcp.pkgName());
+            if(tcp == null)
+                continue;
+            else{
+                tmpMap.put(tmpCount,tmp);
+                tmpCount++;
+            }
+            //System.out.println(tmp.getName()+":pkgIdx="+tcp.pkgIdx()+",pkgName=" + tcp.pkgName());
         }
+        Field[] annoFields = new Field[tmpMap.size()];
+        for(int i =0;i<tmpMap.size();i++){
+            annoFields[i]=tmpMap.get(i);
+        }
+        return annoFields;
     }
 
     public static int getObjectSize(Object object){
@@ -140,7 +172,11 @@ public class ScanUtils {
         Object o = class_para.newInstance();
         Field[] fields = class_para.getDeclaredFields();
         for (int i =0;i<fields.length;i++){
-            setFieldValue(o,fields[i].getName(),(byte)i);
+            try {
+                setFieldValue(o,fields[i].getName(),i);
+            } catch (NoSuchFieldException e) {
+                e.printStackTrace();
+            }
         }
         return o;
     }
