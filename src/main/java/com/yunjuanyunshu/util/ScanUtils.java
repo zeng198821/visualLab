@@ -104,20 +104,23 @@ public class ScanUtils {
         if(tmpFieldType.equals("java.lang.String")) {
             method.invoke(object, new Object[]{(String) val});
         }
-        if(tmpFieldType.equals("java.lang.Integer")) {
+        if(tmpFieldType.equals("java.lang.Integer") || tmpFieldType.equals("int")) {
             method.invoke(object, new Object[]{(int) val});
         }
-        if(tmpFieldType.equals("java.lang.Byte")) {
+        if(tmpFieldType.equals("java.lang.Byte")|| tmpFieldType.equals("byte")) {
             method.invoke(object, new Object[]{(byte) val});
         }
-        if(tmpFieldType.equals("java.lang.Short")) {
+        if(tmpFieldType.equals("java.lang.Short")|| tmpFieldType.equals("short")) {
             method.invoke(object, new Object[]{(short) val});
         }
-        if(tmpFieldType.equals("java.lang.Float")) {
+        if(tmpFieldType.equals("java.lang.Float")|| tmpFieldType.equals("float")) {
             method.invoke(object, new Object[]{(float) val});
         }
-        if(tmpFieldType.equals("java.lang.Double")) {
+        if(tmpFieldType.equals("java.lang.Double")|| tmpFieldType.equals("double")) {
             method.invoke(object, new Object[]{(double) val});
+        }
+        if(val.getClass().getSuperclass().getName().equals("com.yunjuanyunshu.modules.packet.PkgInfoBase")) {
+            method.invoke(object, new Object[]{(com.yunjuanyunshu.modules.packet.PkgInfoBase) val});
         }
     }
 

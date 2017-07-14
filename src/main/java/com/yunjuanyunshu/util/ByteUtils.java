@@ -136,7 +136,7 @@ public class ByteUtils {
      * @return
      */
     public static int byteArrayToLong(byte[] b,boolean...isBigEndian ) {
-        return (isBigEndian==null || !isBigEndian[0])
+        return !(isBigEndian==null ||  isBigEndian.length ==0 || !isBigEndian[0])
                 ?
                  b[7] & 0xFFFF        |
                 (b[6] & 0xFFFF) << 8  |
@@ -164,7 +164,7 @@ public class ByteUtils {
      * @return
      */
     public static byte[] longToByteArray(long a ,boolean...isBigEndian ) {
-        return (isBigEndian==null || !isBigEndian[0])
+        return !(isBigEndian==null ||  isBigEndian.length ==0 || !isBigEndian[0])
                 ?
                 new byte[] {
                         (byte) (a & 0xFFFF),
@@ -196,17 +196,17 @@ public class ByteUtils {
      * @return
      */
     public static int byteArrayToInt(byte[] b,boolean...isBigEndian ) {
-        return (isBigEndian==null || !isBigEndian[0])
+        return !(isBigEndian==null || isBigEndian.length ==0 || !isBigEndian[0])
                 ?
-                b[3] & 0xFF |
+                (b[3] & 0xFF |
                         (b[2] & 0xFF) << 8 |
                         (b[1] & 0xFF) << 16 |
-                        (b[0] & 0xFF) << 24
+                        (b[0] & 0xFF) << 24)
                 :
-                b[0] & 0xFF |
+                (       b[0] & 0xFF |
                         (b[1] & 0xFF) << 8 |
                         (b[2] & 0xFF) << 16 |
-                        (b[3] & 0xFF) << 24;
+                        (b[3] & 0xFF) << 24);
     }
 
     /**
@@ -216,7 +216,7 @@ public class ByteUtils {
      * @return
      */
     public static byte[] intToByteArray(int a ,boolean...isBigEndian ) {
-        return (isBigEndian==null || !isBigEndian[0])
+        return !(isBigEndian==null ||  isBigEndian.length ==0 || !isBigEndian[0])
                 ?
                 new byte[] {
                         (byte) (a & 0xFF),
@@ -242,7 +242,7 @@ public class ByteUtils {
      * @return
      */
     public static short byteArrayToShort(byte[] b,boolean...isBigEndian ) {
-        return (isBigEndian==null || !isBigEndian[0]) ?
+        return !(isBigEndian==null ||  isBigEndian.length ==0 || !isBigEndian[0]) ?
                 (short)(b[1] & 0xFF | (b[0] & 0xFF) << 8 ):(short)( b[0] & 0xFF | (b[1] & 0xFF) << 8);
     }
 
@@ -253,7 +253,7 @@ public class ByteUtils {
      * @return
      */
     public static byte[] shortToByteArray(short a ,boolean...isBigEndian ) {
-        return (isBigEndian==null || !isBigEndian[0])
+        return !(isBigEndian==null ||  isBigEndian.length ==0 || !isBigEndian[0])
                 ?
                 new byte[] {
                         (byte) (a & 0xFF),

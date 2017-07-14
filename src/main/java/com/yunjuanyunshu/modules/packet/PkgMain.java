@@ -8,7 +8,6 @@
 package com.yunjuanyunshu.modules.packet;
 
 import com.yunjuanyunshu.annotation.TcpPkgAnno;
-import com.yunjuanyunshu.modules.packetEnum.PkgType;
 
 public class PkgMain {
 
@@ -22,7 +21,7 @@ public class PkgMain {
     private int serialsNo;
 
     @TcpPkgAnno(pkgIdx=4,pkgName = "包类型",pkgType = "int",pkgLength = 4)
-    private PkgType pyType;
+    private int pyType;
 
     @TcpPkgAnno(pkgIdx=5,pkgName = "报文内容",pkgType = "PkgInfoBase",pkgLength = -1)
     private PkgInfoBase info;
@@ -64,11 +63,11 @@ public class PkgMain {
         this.serialsNo = serialsNo;
     }
 
-    public PkgType getPyType() {
+    public int getPyType() {
         return pyType;
     }
 
-    public void setPyType(PkgType pyType) {
+    public void setPyType(int pyType) {
         this.pyType = pyType;
     }
 
