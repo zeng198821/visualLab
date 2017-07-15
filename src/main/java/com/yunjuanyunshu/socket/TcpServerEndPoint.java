@@ -7,7 +7,9 @@
 
 package com.yunjuanyunshu.socket;
 
+import com.yunjuanyunshu.util.BufferUtils;
 import com.yunjuanyunshu.util.ByteUtils;
+import com.yunjuanyunshu.util.PackageUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,7 +28,7 @@ abstract class TcpServerEndPoint extends Thread {
     /**
      * 缓冲区字节大小
      */
-    protected static final int bufferSize = recvSize*10;
+    protected static final int bufferSize = recvSize * 10;
     /**
      * 缓冲区头部位置
      */
@@ -128,22 +130,24 @@ abstract class TcpServerEndPoint extends Thread {
     private void spiltPackage(){
         int tmpCount = 0;
         int tmpHead = head;
-        HashMap<Integer,Integer> headOffsetList = new HashMap<>();
-        byte[] tmpPkgHead = ByteUtils.intToByteArray(packageHead);
+        int tmpLength=0;
         while ( tmpHead < tail ){
-            if(buffer[tmpHead] == tmpPkgHead[0] && buffer[tmpHead+1] == tmpPkgHead[1] && buffer[tmpHead+2] == tmpPkgHead[2] && buffer[tmpHead+3] == tmpPkgHead[3]){
-                headOffsetList.put(tmpCount,tmpHead);
-                tmpCount++;
+            if(BufferUtils.readInt32(buffer,tmpCount) == packageHead){
+                tmpLength = BufferUtils.readInt32(buffer,tmpHead+4);
+                if(tmpCount+tmpLength +2 > tail){
+                    //剩余内容还未接收完毕,停止解析包
+                    break;
+                }else {
+                    //剩余内容已接收完毕
+                    byte[] tmpPkg = new byte[tmpLength+6];
+                    System.arraycopy(buffer,tmpHead,tmpPkg,0,tmpPkg.length);
+                    if(PackageUtil.checkPackageIsReady(tmpPkg)){
+                        //包检查通过，进入处理包业务逻辑部分
+                        handlePackage(tmpPkg);
+                    }
+                }
             }
             tmpHead++;
-        }
-        for (int i=0;i<(headOffsetList.size() - 1 );i++){
-            int current = headOffsetList.get(i);
-            int next =  headOffsetList.get(i+1);
-            int tmpLength = (next+1)-current;
-            byte[] tmpPkg = new byte[tmpLength];
-            System.arraycopy(buffer,current,tmpPkg,0,tmpLength);
-            handlePackage(tmpPkg);
         }
     }
 

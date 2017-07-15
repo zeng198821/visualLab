@@ -85,4 +85,14 @@ public class PkgTD extends PkgInfoBase {
     public void setTest(PkgTime test) {
         this.test = test;
     }
+
+    @Override
+    int resolveChildPackage(byte[] pkgData, int pos) {
+        return pos;
+    }
+
+    @Override
+    Class<?> getPkgType(int typeid) {
+        return null;
+    }
 }
