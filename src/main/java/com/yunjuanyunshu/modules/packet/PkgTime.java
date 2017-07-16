@@ -9,6 +9,10 @@ package com.yunjuanyunshu.modules.packet;
 
 import com.yunjuanyunshu.annotation.TcpPkgAnno;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class PkgTime extends PkgInfoBase{
 
     @TcpPkgAnno(pkgIdx=1,pkgName = "年",pkgType = "short",pkgLength = 2)
@@ -32,6 +36,27 @@ public class PkgTime extends PkgInfoBase{
      */
     public PkgTime() {
 
+    }
+
+    /**
+     * 构造函数
+     */
+    public PkgTime(Date date) {
+        setDataFromDate(date);
+    }
+
+    public void setDataFromDate(Date date){
+        SimpleDateFormat df = (SimpleDateFormat) DateFormat.getDateInstance();
+        /*格式化日期，并输出*/
+        //最普遍的格式
+        df.applyPattern("yyyy-MM-dd HH:mm:ss");
+        String dateStr = df.format(date);
+        setYear(Short.parseShort(dateStr.substring(0,4)));
+        setMonth(Byte.parseByte(dateStr.substring(5,7)));
+        setDay(Byte.parseByte(dateStr.substring(8,10)));
+        setHour(Byte.parseByte(dateStr.substring(11,13)));
+        setMinute(Byte.parseByte(dateStr.substring(14,16)));
+        setSecond(Byte.parseByte(dateStr.substring(17,19)));
     }
 
     public short getYear() {

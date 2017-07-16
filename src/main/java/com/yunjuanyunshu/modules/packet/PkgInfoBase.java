@@ -15,10 +15,16 @@ import com.yunjuanyunshu.util.ScanUtils;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
 
 public abstract class PkgInfoBase {
 
     abstract int resolveChildPackage(byte[] pkgData,int pos);
+
+    public  int resolvePackage(byte[] packageStream){
+        return resolvePackage(packageStream,0);
+    }
 
     public  int resolvePackage(byte[] packageStream, int pos){
         int tmpPos = pos;
@@ -154,19 +160,54 @@ public abstract class PkgInfoBase {
     public int getPackageLength(){
         int tmpLenth=0;
         Field[] fields = this.getClass().getDeclaredFields();
+        Class tmpListClass=null;
+        try {
+            tmpListClass = Class.forName("java.util.List");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
         for (Field tmp : fields) {
             TcpPkgAnno tcpAnno = tmp.getDeclaredAnnotation(TcpPkgAnno.class);
+            if(tmp.getType() == tmpListClass){
+                String tmpChildClassStr = tmp.getGenericType().getTypeName();
+                tmpChildClassStr = tmpChildClassStr.substring(tmpChildClassStr.indexOf("<")+1,tmpChildClassStr.indexOf(">"));
+                try {
+                    tmpListClass = null;
+                    tmpListClass = Class.forName(tmpChildClassStr);
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+                if(tmpListClass != null){
+                    try {
+                        PkgInfoBase tmpChildObj  = (PkgInfoBase)tmpListClass.newInstance();
+                        List<PkgInfoBase> tmpList = (List<PkgInfoBase>)ScanUtils.getFieldValue(this,tmp.getName());
+                        tmpLenth = tmpLenth + (tmpChildObj.getPackageLength() * tmpList.size());
+                    } catch (InstantiationException e) {
+                        e.printStackTrace();
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    } catch (InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
             if(tcpAnno == null){
                 continue;
             }
+
             int tmpsize= tcpAnno.pkgLength();
-            if(tmpsize <= 0){
-                try {
-                    PkgInfoBase tmpChild = (PkgInfoBase)ScanUtils.getFieldValue(this,tmp.getName());
-                    tmpsize = tmpChild.getPackageLength();
-                } catch (Exception e) {
-                    e.printStackTrace();
+            if(tmpsize <= 0 ){
+                if(!tcpAnno.pkgType().equals("list")){
+                    try {
+                        PkgInfoBase tmpChild = (PkgInfoBase)ScanUtils.getFieldValue(this,tmp.getName());
+                        tmpsize = tmpChild.getPackageLength();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }else {
+                    tmpsize = 0;
                 }
+
             }
             tmpLenth = tmpLenth + tmpsize;
         }

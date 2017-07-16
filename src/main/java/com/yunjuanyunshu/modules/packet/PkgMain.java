@@ -14,6 +14,7 @@ import com.yunjuanyunshu.util.ScanUtils;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.List;
 
 public class PkgMain extends PkgInfoBase{
 
@@ -36,8 +37,6 @@ public class PkgMain extends PkgInfoBase{
     private short checkSum;
 
     HashMap<Integer,Class<?>> PkgTypeList = new HashMap<Integer,Class<?>>();
-
-
 
     /**
      * 构造函数
@@ -85,8 +84,6 @@ public class PkgMain extends PkgInfoBase{
         BufferUtils.writeInt16(tmpBuffer,tmpPackageAllLength-2,(short)tmpCountCheckSum);
         return tmpBuffer;
     }
-
-
 
     public int getHeader() {
         return header;

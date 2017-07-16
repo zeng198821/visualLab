@@ -8,13 +8,14 @@
 package com.yunjuanyunshu.socket;
 
 import com.yunjuanyunshu.util.BufferUtils;
-import com.yunjuanyunshu.util.ByteUtils;
 import com.yunjuanyunshu.util.PackageUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
-import java.util.HashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 abstract class TcpServerEndPoint extends Thread {
 
@@ -24,26 +25,51 @@ abstract class TcpServerEndPoint extends Thread {
     /**
      * 收包字节大小
      */
-    protected static final int recvSize = 1024;
+    protected static final int baseSize = 1024;
     /**
      * 缓冲区字节大小
      */
-    protected static final int bufferSize = recvSize * 10;
+    protected static final int bufferSize = baseSize * 10;
     /**
-     * 缓冲区头部位置
+     * 接收缓冲区头部位置
      */
-    private int head;
+    private int recvHead;
     /**
-     * 缓冲区尾部位置
+     * 接收缓冲区尾部位置
      */
-    private int tail;
+    private int reacTail;
 
     /**
-     * 缓冲区字节数组
+     * 发送缓冲区头部位置
      */
-    private byte[] buffer = new byte[bufferSize];
+    private int sendHead;
+    /**
+     * 发送缓冲区尾部位置
+     */
+    private int sendTail;
 
+
+
+    /**
+     * 接收缓冲区字节数组
+     */
+    private byte[] recvBuffer = new byte[bufferSize];
+
+    /**
+     * 发送缓冲区字节数组
+     */
+    private byte[] sendBuffer = new byte[bufferSize];
+
+    Lock sendLock = new ReentrantLock();
+
+    /**
+     * 接收流
+     */
     InputStream inputStream;
+    /**
+     * 发送流
+     */
+    OutputStream outputStream;
 
     /**
      * 通讯对象
@@ -66,9 +92,11 @@ abstract class TcpServerEndPoint extends Thread {
         try{
             if(this.socket != null){
                 inputStream = this.socket.getInputStream();
+                outputStream = this.socket.getOutputStream();
             }
             runstate = true;
             super.start();
+
         }catch (Exception ex){
             System.out.println(ex.toString());
         }
@@ -97,50 +125,116 @@ abstract class TcpServerEndPoint extends Thread {
      * 接收数据
      */
     private void recvData() throws IOException {
-        if(bufferSize<tail+recvSize){
-            moveBufferData();
+        System.out.println("开始接收数据");
+        if(bufferSize< reacTail + baseSize){
+            moveRecvBufferData();
             return;
         }
-        int tmpsize = inputStream.read(buffer,tail,recvSize);
-        tail = tail + tmpsize;
+        int tmpsize = inputStream.read(recvBuffer, reacTail, baseSize);
+        reacTail = reacTail + tmpsize;
         spiltPackage();
+        System.out.println("结束接收数据");
     }
 
     /**
      * 整理缓冲区内容
      */
-    private void moveBufferData(){
-        if(head > (bufferSize/2)){
-            for(int i =0;i<( (tail+1) - head );i++){
-                buffer[i] = buffer[head];
-            }
+    private void moveRecvBufferData(){
+        sendLock.lock();
+        if(reacTail == recvHead){
+            reacTail = 0;
+            recvHead = 0;
+            return;
         }
+        if(recvHead > (bufferSize/2)){
+            for(int i = 0; i<( (reacTail +1) - recvHead); i++){
+                recvBuffer[i] = recvBuffer[recvHead+i];
+            }
+            reacTail = reacTail - recvHead;
+            recvHead = 0;
+        }
+        sendLock.unlock();
+    }
+
+    /**
+     * 整理缓冲区内容
+     */
+    private void moveSendBufferData(){
+        sendLock.lock();
+        if(sendTail ==sendHead){
+            sendTail = 0;
+            sendHead = 0;
+            return;
+        }
+        if(sendHead> (bufferSize/2)){
+            for(int i = 0; i<( (sendTail +1) - sendHead); i++){
+                sendBuffer[i] = sendBuffer[sendHead+i];
+            }
+            sendTail = sendTail - sendHead;
+            sendHead = 0;
+        }
+        sendLock.unlock();
+    }
+
+    /**
+     * 将待发送数据写入缓冲池
+     * @param sendData 待发送数据
+     * @param offset 偏移量
+     * @param length 写入长度
+     */
+    public void sendData(byte[] sendData,int offset,int length){
+        sendLock.lock();
+        System.arraycopy(sendData,offset,sendBuffer,sendTail,length);
+        sendLock.unlock();
+    }
+
+    /**
+     * 将待发送数据写入缓冲池
+     * @param sendData 待发送数据
+     */
+    public void sendData(byte[] sendData){
+        sendData(sendData,0,sendData.length);
     }
 
     /**
      * 发送数据
      */
     private void sendData(){
+        System.out.println("开始接收数据");
+        try {
+            sendLock.lock();
+            outputStream.write(sendBuffer,sendHead,(sendTail - sendHead)+1);
+            sendLock.unlock();
+            outputStream.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if(bufferSize< sendTail + baseSize){
+            moveSendBufferData();
+            return;
+        }
+        System.out.println("开始接收数据");
 
     }
+
 
     /**
      * 拆分业务包
      */
     private void spiltPackage(){
         int tmpCount = 0;
-        int tmpHead = head;
+        int tmpHead = recvHead;
         int tmpLength=0;
-        while ( tmpHead < tail ){
-            if(BufferUtils.readInt32(buffer,tmpCount) == packageHead){
-                tmpLength = BufferUtils.readInt32(buffer,tmpHead+4);
-                if(tmpCount+tmpLength +2 > tail){
+        while ( tmpHead < reacTail){
+            if(BufferUtils.readInt32(recvBuffer,tmpCount) == packageHead){
+                tmpLength = BufferUtils.readInt32(recvBuffer,tmpHead+4);
+                if(tmpCount+tmpLength +2 > reacTail){
                     //剩余内容还未接收完毕,停止解析包
                     break;
                 }else {
                     //剩余内容已接收完毕
                     byte[] tmpPkg = new byte[tmpLength+6];
-                    System.arraycopy(buffer,tmpHead,tmpPkg,0,tmpPkg.length);
+                    System.arraycopy(recvBuffer,tmpHead,tmpPkg,0,tmpPkg.length);
                     if(PackageUtil.checkPackageIsReady(tmpPkg)){
                         //包检查通过，进入处理包业务逻辑部分
                         handlePackage(tmpPkg);
