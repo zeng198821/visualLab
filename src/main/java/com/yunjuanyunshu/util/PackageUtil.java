@@ -6,7 +6,6 @@ import com.yunjuanyunshu.modules.packet.PkgTime;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
-import java.util.Objects;
 
 /**
  * Created by zeng on 2017-7-13.
@@ -109,7 +108,7 @@ public class PackageUtil {
             tmpCountCheckSum = tmpCountCheckSum + (0xFF & packageStream[i]);
         }
         if(tmpCountCheckSum == (0xFFFF & tmpPkgCheckSum)){
-
+            tmpPackageIsReady = true;
         }
         return tmpPackageIsReady;
     }

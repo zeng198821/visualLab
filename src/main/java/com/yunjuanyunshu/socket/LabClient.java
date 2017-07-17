@@ -29,7 +29,7 @@ public class LabClient {
         PkgMain tmpTestMain = new PkgMain();
         tmpTestMain.setPyType(1);
         tmpTestMain.setHeader(0x7E6D5C4B);
-        for(int i =0;i<1000;i++){
+        for(int i =0;i<10000000;i++){
             tmpTestMain.setSerialsNo(i);
             tmpTestMain.setInfo(new PkgTime(new Date()));
             clientEndPoint.sendData(tmpTestMain.getThisBytes());

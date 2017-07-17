@@ -37,7 +37,7 @@ abstract class TcpServerEndPoint extends Thread {
     /**
      * 接收缓冲区尾部位置
      */
-    private int reacTail;
+    private int recvTail;
 
     /**
      * 发送缓冲区头部位置
@@ -66,6 +66,7 @@ abstract class TcpServerEndPoint extends Thread {
      * 接收流
      */
     InputStream inputStream;
+
     /**
      * 发送流
      */
@@ -82,6 +83,12 @@ abstract class TcpServerEndPoint extends Thread {
      */
     public TcpServerEndPoint(Socket socket, int packageHead) {
         this.socket = socket;
+
+//        try {
+//            this.socket.setSoTimeout(100);
+//        } catch (SocketException e) {
+//            e.printStackTrace();
+//        }
         this.packageHead = packageHead;
     }
 
@@ -92,7 +99,9 @@ abstract class TcpServerEndPoint extends Thread {
         try{
             if(this.socket != null){
                 inputStream = this.socket.getInputStream();
+                //inputBufferedReader = new BufferedReader(inputStream)
                 outputStream = this.socket.getOutputStream();
+
             }
             runstate = true;
             super.start();
@@ -111,7 +120,7 @@ abstract class TcpServerEndPoint extends Thread {
         while (runstate){
             try{
                 recvData();
-                sendData();
+                //sendData();
                 Thread.sleep(100);
             }catch (Exception ex){
                 System.out.println(ex.toString());
@@ -126,12 +135,26 @@ abstract class TcpServerEndPoint extends Thread {
      */
     private void recvData() throws IOException {
         System.out.println("开始接收数据");
-        if(bufferSize< reacTail + baseSize){
+        if(bufferSize< recvTail + baseSize){
             moveRecvBufferData();
             return;
         }
-        int tmpsize = inputStream.read(recvBuffer, reacTail, baseSize);
-        reacTail = reacTail + tmpsize;
+        int tmpbyte;
+//        while((tmpbyte = inputStream.read()) != -1){
+//            recvBuffer[recvTail] = (byte)tmpbyte;
+//            recvTail++;
+//        }
+        int tmpsize = 0;
+        try{
+            tmpsize = inputStream.read(recvBuffer, recvTail, baseSize);
+        }
+        catch (Exception ex){
+            System.out.println(ex.toString());
+        }finally {
+            recvTail = recvTail + tmpsize;
+        }
+
+
         spiltPackage();
         System.out.println("结束接收数据");
     }
@@ -141,16 +164,16 @@ abstract class TcpServerEndPoint extends Thread {
      */
     private void moveRecvBufferData(){
         sendLock.lock();
-        if(reacTail == recvHead){
-            reacTail = 0;
+        if(recvTail == recvHead){
+            recvTail = 0;
             recvHead = 0;
             return;
         }
         if(recvHead > (bufferSize/2)){
-            for(int i = 0; i<( (reacTail +1) - recvHead); i++){
+            for(int i = 0; i<( (recvTail +1) - recvHead); i++){
                 recvBuffer[i] = recvBuffer[recvHead+i];
             }
-            reacTail = reacTail - recvHead;
+            recvTail = recvTail - recvHead;
             recvHead = 0;
         }
         sendLock.unlock();
@@ -185,7 +208,9 @@ abstract class TcpServerEndPoint extends Thread {
     public void sendData(byte[] sendData,int offset,int length){
         sendLock.lock();
         System.arraycopy(sendData,offset,sendBuffer,sendTail,length);
+        sendTail = sendTail + length;
         sendLock.unlock();
+        sendData();
     }
 
     /**
@@ -200,10 +225,11 @@ abstract class TcpServerEndPoint extends Thread {
      * 发送数据
      */
     private void sendData(){
-        System.out.println("开始接收数据");
+        System.out.println("开始发送数据");
         try {
             sendLock.lock();
             outputStream.write(sendBuffer,sendHead,(sendTail - sendHead)+1);
+            sendHead = sendTail;
             sendLock.unlock();
             outputStream.flush();
         } catch (IOException e) {
@@ -213,7 +239,7 @@ abstract class TcpServerEndPoint extends Thread {
             moveSendBufferData();
             return;
         }
-        System.out.println("开始接收数据");
+        System.out.println("结束发送数据");
 
     }
 
@@ -225,10 +251,10 @@ abstract class TcpServerEndPoint extends Thread {
         int tmpCount = 0;
         int tmpHead = recvHead;
         int tmpLength=0;
-        while ( tmpHead < reacTail){
-            if(BufferUtils.readInt32(recvBuffer,tmpCount) == packageHead){
+        while ( tmpHead < recvTail){
+            if(BufferUtils.readInt32(recvBuffer,tmpHead) == packageHead){
                 tmpLength = BufferUtils.readInt32(recvBuffer,tmpHead+4);
-                if(tmpCount+tmpLength +2 > reacTail){
+                if(tmpCount+tmpLength +2 > recvTail){
                     //剩余内容还未接收完毕,停止解析包
                     break;
                 }else {
@@ -243,6 +269,7 @@ abstract class TcpServerEndPoint extends Thread {
             }
             tmpHead++;
         }
+        recvHead = tmpHead;
     }
 
     /**
